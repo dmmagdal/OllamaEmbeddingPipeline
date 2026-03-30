@@ -1,0 +1,18 @@
+# docker-compose.yml
+services:
+  ollama:
+    image: ollama/ollama
+    ports: ["11434:11434"]
+    volumes:
+      - ollama_data:/root/.ollama
+
+  converter:
+    build: .           # your Dockerfile extending ghcr.io/ggerganov/llama.cpp
+    volumes:
+      - ./models:/models
+      - ./pipeline.py:/app/pipeline.py
+    depends_on: [ollama]
+    command: python /app/pipeline.py
+
+volumes:
+  ollama_data:
