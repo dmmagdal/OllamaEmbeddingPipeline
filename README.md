@@ -22,7 +22,7 @@ Description: A simple pipeline for one to use when converting certain models (pa
  - Docker
      - Recommended way to run everything.
      - Just run the command `docker compose up` and it'll build everything you need.
-     - Building the docker image with `docker compose up` takes around 25 minutes and around 30 GB total.
+     - Building the docker image with `docker compose up` takes around 25 minutes and around 40 GB total.
 
 
 ### References

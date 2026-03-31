@@ -59,6 +59,7 @@ def download_model(model_configs: Dict) -> None:
 		if os.path.exists(storage_dir) and len(os.listdir(storage_dir)) != 0:
 			continue
 
+		print(f"Downloading model {model_id}")
 		tokenizer = AutoTokenizer.from_pretrained(
 			model_id, cache_dir=cache_dir
 		)
@@ -72,6 +73,8 @@ def download_model(model_configs: Dict) -> None:
 
 		# Delete the cache.
 		shutil.rmtree(cache_dir)
+
+	print("Finished downloading models.")
 
 # ── Stage 1: Convert HF → F32 GGUF (once per model) ──────────
 def convert_to_f32(cfg: ModelConfig) -> pathlib.Path:
