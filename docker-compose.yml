@@ -12,7 +12,7 @@ services:
       - ./models:/models
       - ./pipeline.py:/app/pipeline.py
     depends_on: [ollama]
-    command: python /app/pipeline.py
+    command: python3 /app/pipeline.py
 
 volumes:
   ollama_data:
