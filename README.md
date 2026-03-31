@@ -11,6 +11,18 @@ Description: A simple pipeline for one to use when converting certain models (pa
  - Models
      - All models (with their respective configuration information) can be found in `config.json`. Just follow the general format.
      - Note: the hkunlp instructor models will be passed over/skipped in the general script. This is because the model is an encoder-decoder model (similar to T5) and requires additional setup to generate the embeddings while the other models are just encoder-only and are pretty straightforward to work with.
+ - Llama.cpp
+     - Clone the [llama.cpp repo](https://github.com/ggml-org/llama.cpp) in the root of this repository.
+     - Build the executables (requires `cmake` or `make` to be installed but instructions in repo specify `cmake`).
+         - I use the commands [listed here](https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md) in the repo's build docs.
+         - `cmake -B build; cmake --build build --config Release`
+ - Ollama
+     - Follow the [install instructions](https://ollama.com/download) on their website.
+     - Make sure ollama is running on default ports.
+ - Docker
+     - Recommended way to run everything.
+     - Just run the command `docker compose up` and it'll build everything you need.
+     - Building the docker image with `docker compose up` takes around 25 minutes and around 30 GB total.
 
 
 ### References
