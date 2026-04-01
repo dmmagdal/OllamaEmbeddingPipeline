@@ -60,7 +60,6 @@ RUN cd /app/llama.cpp && \
 
 # Add llama.cpp binaries to PATH.
 ENV PATH=/opt/llama.cpp/build/bin:$PATH
-RUN mamba env create -f /app/env.yml
 
 #######################################################################
 # Ollama Setup.
