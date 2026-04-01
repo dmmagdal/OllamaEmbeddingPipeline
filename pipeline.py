@@ -7,6 +7,7 @@ import os
 import pathlib
 import shutil
 import subprocess
+import time
 from typing import Dict
 
 import httpx
@@ -43,6 +44,22 @@ MODELS = [
 		max_tokens=model_config["max_tokens"],
 	) for model_name, model_config in zip(model_keys, model_configs)
 ]
+
+# Wait for ollama to be ready.
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
+
+# Wait until Ollama is ready
+for i in range(30):
+    try:
+        r = httpx.get(f"{OLLAMA_HOST}/api/health")
+        if r.status_code == 200:
+            print("Ollama server is ready")
+            break
+    except Exception:
+        print("Waiting for Ollama...")
+        time.sleep(2)
+else:
+    raise RuntimeError("Ollama server did not become ready in time")
 
 # Important paths.
 MODELS_DIR = pathlib.Path("./models")
@@ -167,7 +184,8 @@ def verify_all(cfg: ModelConfig, quant_paths: dict[str, pathlib.Path]):
 		assert ollama_name in listed, f"✗ {ollama_name} not found in ollama list"
 
 		resp = httpx.post(
-			"http://localhost:11434/api/embeddings",
+			# "http://localhost:11434/api/embeddings",
+			f"{OLLAMA_HOST}/api/embeddings",
 			json={"model": ollama_name, "prompt": "the quick brown fox"}
 		)
 		resp.raise_for_status()

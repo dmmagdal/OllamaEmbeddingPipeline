@@ -1,17 +1,29 @@
 # docker-compose.yml
 services:
   ollama:
-    image: ollama/ollama
+    image: ollama/ollama:latest
     ports: ["11434:11434"]
     volumes:
       - ollama_data:/root/.ollama
+      - ./models:/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 5s
+      timeout: 30s
+      retries: 10
 
   converter:
     build: .           # Dockerfile extending ghcr.io/ggerganov/llama.cpp.
     volumes:
       - ./models:/models
       - ./pipeline.py:/app/pipeline.py
-    depends_on: [ollama]
+      - ./config.json:/app/config.json
+      - ollama_data:/root/.ollama
+    depends_on: 
+      ollama:
+        - condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434   # point to the Ollama container
     # command: python3 /app/pipeline.py # Command not needed since we specify it in the actual dockerfile.
 
 volumes:
