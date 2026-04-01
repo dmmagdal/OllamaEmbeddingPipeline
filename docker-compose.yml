@@ -21,7 +21,7 @@ services:
       - ollama_data:/root/.ollama
     depends_on: 
       ollama:
-        - condition: service_healthy
+        condition: service_healthy
     environment:
       OLLAMA_HOST: http://ollama:11434   # point to the Ollama container
     # command: python3 /app/pipeline.py # Command not needed since we specify it in the actual dockerfile.

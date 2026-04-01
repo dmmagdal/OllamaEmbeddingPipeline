@@ -1,6 +1,6 @@
 # FROM ghcr.io/ggml-org/llama.cpp:full
 # FROM ollama/ollama:latest
-FROM ubuntu/ubuntu:noble-20260217
+FROM ubuntu:noble-20260217
 
 # Override llama.cpp entrypoint.
 # ENTRYPOINT []
@@ -37,10 +37,10 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/4.12.0-0/Mam
 ENV PATH=/opt/conda/bin:$PATH
 
 # Copy env.yml file (no cuda) into the container.
-# COPY env.yml /app/env.yml
+COPY env.yml /app/env.yml
 
 # Copy config.json file.
-# COPY config.json /app/config.json
+COPY config.json /app/config.json
 
 # Create the conda environment from the env.yml.
 RUN mamba env create -f /app/env.yml
