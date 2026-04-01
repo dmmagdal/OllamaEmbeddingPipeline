@@ -55,7 +55,6 @@ LLAMA_CPP  = pathlib.Path("./llama.cpp")
 # ── Stage 0: Download models from HF ─────────────────────────
 def download_model(model_configs: Dict) -> None:
 	for model_config in model_configs:
-		# model_config = model_configs[key]
 		model_id = model_config["model_id"]
 		storage_dir = model_config["storage_dir"]
 		cache_dir = model_config["cache_dir"]
