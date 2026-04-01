@@ -11,6 +11,8 @@ services:
       interval: 5s
       timeout: 30s
       retries: 10
+    networks:
+      - pipeline-net
 
   converter:
     build: .           # Dockerfile extending ghcr.io/ggerganov/llama.cpp.
@@ -25,6 +27,12 @@ services:
     environment:
       OLLAMA_HOST: http://ollama:11434   # point to the Ollama container
     # command: python3 /app/pipeline.py # Command not needed since we specify it in the actual dockerfile.
+    networks:
+      - pipeline-net
 
 volumes:
   ollama_data:
+
+networks:
+  pipeline-net:
+    driver: bridge
