@@ -48,19 +48,6 @@ MODELS = [
 # Wait for ollama to be ready.
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
 
-# Wait until Ollama is ready
-for i in range(30):
-    try:
-        r = httpx.get(f"{OLLAMA_HOST}/api/health")
-        if r.status_code == 200:
-            print("Ollama server is ready")
-            break
-    except Exception:
-        print("Waiting for Ollama...")
-        time.sleep(2)
-else:
-    raise RuntimeError("Ollama server did not become ready in time")
-
 # Important paths.
 MODELS_DIR = pathlib.Path("./models")
 LLAMA_CPP  = pathlib.Path("./llama.cpp")

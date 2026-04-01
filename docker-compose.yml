@@ -7,7 +7,7 @@ services:
       - ollama_data:/root/.ollama
       - ./models:/models
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      test: ["CMD", "ollama", "list"]
       interval: 5s
       timeout: 30s
       retries: 10
