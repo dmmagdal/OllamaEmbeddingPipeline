@@ -25,6 +25,12 @@ Description: A simple pipeline for one to use when converting certain models (pa
      - Building the docker image with `docker compose up` takes around 25 minutes and around 40 GB total.
 
 
+### Notes
+
+ - BERT pooling methods were too old for ollama to register properly.
+     - This required that I specify the pooling method for the base BERT models in the `config.json` while all other pooling methods are default to `mean`.
+
+
 ### References
 
  - Ollama

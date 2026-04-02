@@ -5,28 +5,32 @@
             "cache_dir": "bert-base-uncased_cache",
             "storage_dir": "bert-base-uncased",
             "max_tokens": 512,
-            "dims": 768
+            "dims": 768,
+            "pooling": "cls"
         },
         "mobilebert": {
             "model_id": "google/mobilebert-uncased",
             "cache_dir": "google_mobilebert-uncased_cache",
             "storage_dir": "google_mobilebert-uncased",
             "max_tokens": 512,
-            "dims": 512
+            "dims": 512,
+            "pooling": "cls"
         },
         "distilbert": {
             "model_id": "distilbert/distilbert-base-uncased",
             "cache_dir": "distilbert_distilbert-uncased_cache",
             "storage_dir": "distilbert_distilbert-uncased",
             "max_tokens": 512,
-            "dims": 768
+            "dims": 768,
+            "pooling": "cls"
         },
         "bert-large": {
             "model_id": "google-bert/bert-large-uncased",
             "cache_dir": "bert-large-uncased_cache",
             "storage_dir": "bert-large-uncased",
             "max_tokens": 512,
-            "dims": 1024
+            "dims": 1024,
+            "pooling": "cls"
         },
         "st-minilm-l6-v1": {
             "model_id": "sentence-transformers/all-MiniLM-L6-v1",

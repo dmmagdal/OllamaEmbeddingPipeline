@@ -22,6 +22,7 @@ class ModelConfig:
 	dims: int
 	max_tokens: int
 	quants: list[str] = field(default_factory=lambda: ["f32", "f16", "q8_0", "q4_k_m"])
+	pooling: str = "mean"  # default for all bert and sentence-transformer models.
 
 # Open the config.json file to identify all models for this pipeline.
 with open("config.json", "r") as f:
@@ -42,6 +43,7 @@ MODELS = [
 		storage_dir=model_config["storage_dir"],
 		dims=model_config["dims"],
 		max_tokens=model_config["max_tokens"],
+		pooling=model_config.get("pooling", "mean") # default to "mean" if not specified.
 	) for model_name, model_config in zip(model_keys, model_configs)
 ]
 
@@ -147,15 +149,27 @@ def quantize(cfg: ModelConfig, f32_path: pathlib.Path) -> dict[str, pathlib.Path
 def register_all(cfg: ModelConfig, quant_paths: dict[str, pathlib.Path]):
 	for quant, gguf_path in quant_paths.items():
 		ollama_name = f"{cfg.name}-{quant}"   # eg. bert-base-q4_k_m
-		modelfile = f"FROM {gguf_path.resolve()}\n"
+		modelfile = (
+			f"FROM {gguf_path.resolve()}\n"
+			f"PARAMETER pooling {cfg.pooling}\n"
+		)
 		mf_path = gguf_path.with_suffix(".Modelfile")
 		mf_path.write_text(modelfile)
 
-		subprocess.run(
-			["ollama", "create", ollama_name, "-f", str(mf_path)],
-			check=True
+		# subprocess.run(
+		# 	["ollama", "create", ollama_name, "-f", str(mf_path)],
+		# 	check=True
+		# )
+		# print(f"  ✓ Registered → {ollama_name}")
+		resp = httpx.post(
+			f"{OLLAMA_HOST}/api/create",
+			json={"name": ollama_name, "modelfile": modelfile},
+			timeout=300.0
 		)
-		print(f"  ✓ Registered → {ollama_name}")
+		if resp.status_code != 200:
+			print(f"Ollama error for {ollama_name}: {resp.text}", flush=True)
+			resp.raise_for_status()
+		print(f"  ? Registered ? {ollama_name}")
 
 # ── Stage 4: Verify each registered model ────────────────────
 def verify_all(cfg: ModelConfig, quant_paths: dict[str, pathlib.Path]):
@@ -170,10 +184,11 @@ def verify_all(cfg: ModelConfig, quant_paths: dict[str, pathlib.Path]):
 		assert ollama_name in listed, f"✗ {ollama_name} not found in ollama list"
 
 		resp = httpx.post(
-			# "http://localhost:11434/api/embeddings",
-			f"{OLLAMA_HOST}/api/embeddings",
+			# "http://localhost:11434/api/embed",
+			f"{OLLAMA_HOST}/api/embed",
 			json={"model": ollama_name, "prompt": "the quick brown fox"}
 		)
+		print(json.dumps(resp.json(), indent=4))
 		resp.raise_for_status()
 		vec = resp.json()["embedding"]
 
