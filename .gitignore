@@ -8,3 +8,10 @@
 
 # Llama .cpp.
 /llama.cpp/
+
+# Downloaded models.
+/bert*
+/distilbert*
+/mobilebert*
+/sentence-transformers*
+/hkunlp*
