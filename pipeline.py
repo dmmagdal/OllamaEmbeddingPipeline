@@ -29,11 +29,28 @@ with open("config.json", "r") as f:
 	models = json.load(f)["models"]
 
 # Get the model keys and use that to isolate the model configurations.
-model_keys = sorted(list(models.keys()))
+skip_prefixes = ["hkunlp", "bert", "mobilebert", "distilbert"]
+model_keys = sorted([
+	key for key in list(models.keys())
+	if not any(key.startswith(prefix) for prefix in skip_prefixes)
+])
 model_configs = [
 	models[key] for key in model_keys
-	if "hkunlp" not in key # Exclude hkunlp models because they're encoder-decoder models that require additional attention.
+	# if not any(key.startswith(prefix) for prefix in skip_prefixes)
 ]
+
+# NOTE:
+# Excluding a few models from the config file for a few reasons:
+# 1. BERT models - these models are "too old" for llama.cpp and ollama. 
+# They can be converted and quantized to gguf via the conversion script 
+# and added to the ollama (local) registry BUT they fail to be loaded 
+# when it's time for inference.
+# 2. HKUNLP models - these models are encoder-decoder models (like T5).
+# Generating embeddings from these models will require an alternative 
+# approach than a simple forward pass (because of the attached 
+# decoder). I've tried working with this in a different project but 
+# dropped it because things got too complicated. Better to just work
+# wit the models that are left and get those tested and working.
 
 # Load the model configurations to the data class.
 MODELS = [
@@ -51,8 +68,8 @@ MODELS = [
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
 
 # Important paths.
-MODELS_DIR = pathlib.Path("./models")
-LLAMA_CPP  = pathlib.Path("./llama.cpp")
+MODELS_DIR = pathlib.Path("/models") if os.path.exists("/models") else pathlib.Path("./models")
+LLAMA_CPP  = pathlib.Path("/app/llama.cpp") if os.path.exists("/app") else pathlib.Path("./llama.cpp")
 
 # ── Stage 0: Download models from HF ─────────────────────────
 def download_model(model_configs: Dict) -> None:
@@ -151,25 +168,33 @@ def register_all(cfg: ModelConfig, quant_paths: dict[str, pathlib.Path]):
 		ollama_name = f"{cfg.name}-{quant}"   # eg. bert-base-q4_k_m
 		modelfile = (
 			f"FROM {gguf_path.resolve()}\n"
-			f"PARAMETER pooling {cfg.pooling}\n"
+			# f"PARAMETER pooling {cfg.pooling}\n"
 		)
 		mf_path = gguf_path.with_suffix(".Modelfile")
 		mf_path.write_text(modelfile)
 
-		# subprocess.run(
-		# 	["ollama", "create", ollama_name, "-f", str(mf_path)],
-		# 	check=True
-		# )
-		# print(f"  ✓ Registered → {ollama_name}")
-		resp = httpx.post(
-			f"{OLLAMA_HOST}/api/create",
-			json={"name": ollama_name, "modelfile": modelfile},
-			timeout=300.0
+		print(ollama_name)
+		print(gguf_path.resolve())
+		print(mf_path)
+		subprocess.run(
+			["ollama", "create", ollama_name, "-f", str(mf_path)],
+			check=True
 		)
-		if resp.status_code != 200:
-			print(f"Ollama error for {ollama_name}: {resp.text}", flush=True)
-			resp.raise_for_status()
-		print(f"  ? Registered ? {ollama_name}")
+		print(f"  ✓ Registered → {ollama_name}")
+		# resp = httpx.post(
+		# 	f"{OLLAMA_HOST}/api/create",
+		# 	json={
+		# 		"name": ollama_name, 
+		# 		# "modelfile": modelfile,
+		# 		"modelfile": str(gguf_path.resolve()),
+		# 		"pooling": cfg.pooling,
+		# 	},
+		# 	timeout=300.0
+		# )
+		# if resp.status_code != 200:
+		# 	print(f"Ollama error for {ollama_name}: {resp.text}", flush=True)
+		# 	resp.raise_for_status()
+		# print(f"  ? Registered ? {ollama_name}")
 
 # ── Stage 4: Verify each registered model ────────────────────
 def verify_all(cfg: ModelConfig, quant_paths: dict[str, pathlib.Path]):
@@ -186,11 +211,11 @@ def verify_all(cfg: ModelConfig, quant_paths: dict[str, pathlib.Path]):
 		resp = httpx.post(
 			# "http://localhost:11434/api/embed",
 			f"{OLLAMA_HOST}/api/embed",
-			json={"model": ollama_name, "prompt": "the quick brown fox"}
+			json={"model": ollama_name, "input": "the quick brown fox"}
 		)
-		print(json.dumps(resp.json(), indent=4))
+		# print(json.dumps(resp.json(), indent=4))
 		resp.raise_for_status()
-		vec = resp.json()["embedding"]
+		vec = resp.json()["embeddings"]
 
 		# Dim check
 		assert len(vec) == cfg.dims, \
